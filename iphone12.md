@@ -13,7 +13,7 @@ extrinsicTranslation: !!opencv-matrix
     rows: 3
     cols: 1
     dt: d
-    data: [-0.028, -0.020, 0.0]
+    data: [0.028, 0.020, 0.0]
 ```
 
 ![F7A71E89-7DFD-4FCC-A19A-BB01883D984F](https://tva1.sinaimg.cn/large/0081Kckwly1gkz6u9hw6cj30jq0uiwqw.jpg)

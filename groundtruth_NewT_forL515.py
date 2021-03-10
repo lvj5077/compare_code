@@ -256,7 +256,7 @@ if __name__ == "__main__":
     elapsed = time.time() - t
     print("finished in ", elapsed)
 
-    cleanData[:, 0] = cleanData[:, 0] - cleanData[0, 0]
+    cleanData[:, 0] = cleanData[:, 0] - cleanData[0, 0] + 1608253696.227316269
 
     # print( cleanData[1,0] - cleanData[0,0] )
     # print cleanData.shape
