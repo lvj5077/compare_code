@@ -61,7 +61,7 @@ def quaternion_to_euler(x, y, z, w):
 
 def dataFromCSV(data_path):
     with open(data_path, 'r') as f:
-        reader = csv.reader(f, delimiter=',')
+        reader = csv.reader(f, delimiter=' ')
         data = list(reader)
 
         data = np.array(data)
@@ -76,22 +76,12 @@ def find_nearest(array, value):
     return idx
 # folderName = sys.argv[1]
 # # folderName = 'fcxcy_1'
-# data_path = sys.argv[1] # minus  div
+data_path = sys.argv[1] # minus  div
+# data_type = sys.argv[2] # gt vins est
+# data_path = '/Users/jin/Downloads/ipad/ARposes_tum.txt'
 
-
-T_c2b = np.matrix(np.identity( 4 ))
-# camera coordinate systems following a **right-handed** convention
-T_c2b[0:4,0:4] = np.array([[0.0,-1.0,0.0,0.028],[1.0,0.0,0.0,0.020],[0.0, 0.0, 1.0,0.0],[0.0,0.0,0.0,1.0]])
-print (T_c2b)
-
-
-
-# data_path = '/Volumes/BlackSSD/11_21_2020/ip_11_21/2020-11-21T23-49-23/ARposes.txt'
-
-data_path =  sys.argv[1]
 insertIndex = len(data_path)-4;
-output_line = data_path[:insertIndex] + '_arkit' + data_path[insertIndex:]
-# output_line =  sys.argv[2]
+output_line = data_path[:insertIndex] + '_all' + data_path[insertIndex:]
 # output_line = "/Users/jin/data/HeZhang/VCU_RVI_dataset/robot/room/hard/results/vins_ca/est_lab1.csv"
 
 data = dataFromCSV(data_path)
@@ -99,39 +89,39 @@ data = dataFromCSV(data_path)
 
 timeIndex = data[:,0];
 
-startTime = data[0,0] #1.606020607632468e+09 -2.0
+startTime = float(sys.argv[2]) # 1.604275701036828e+09 -2.65
 
-# data[0,0]# 3584619707428/1e9 
 startIdx = find_nearest(timeIndex, startTime)
-
+print ("start from: ", data[startIdx,0])
 print ("skip: ", (data[startIdx,0] -data[0,0]))
 endIdx = find_nearest(timeIndex, startTime+300000)
 
-data = data[startIdx:endIdx,0:8]
+# data = data[startIdx:endIdx,0:8]
 # data[:,0] = (data[:,0]-data[0,0])
 
-# TUM: 'timestamp tx ty tz qx qy qz qw' 
-# vins:w x y z'
+# data = data[startIdx:endIdx,0:8]
+data[:,0] = (data[:,0]-data[startIdx,0])
 
-quatXYZ = np.copy(data[:,5:8])
-quatW = np.copy(data[:,4])
-data[:,4:7]= quatXYZ
-data[:,7]= quatW
 
+
+T_b02bi = np.matrix(np.identity( 4 ))
+t = data[startIdx,1:4]
+T_b02bi[0:3,3] = t.reshape((3, 1))
+r = R.from_quat(data[startIdx,4:8])
+T_b02bi[0:3,0:3] = r.as_matrix();
+T_bs2b0 = np.linalg.inv(T_b02bi) 
 
 length =  data.shape[0]
 for i in range(length):
-    T_c02ci = np.matrix(np.identity( 4 ))
+    T_b02bi = np.matrix(np.identity( 4 ))
     t = data[i,1:4]
-    T_c02ci[0:3,3] = t.reshape((3, 1))
+    T_b02bi[0:3,3] = t.reshape((3, 1))
     r = R.from_quat(data[i,4:8])
-    T_c02ci[0:3,0:3] = r.as_matrix();
-    T_c02bi = T_c02ci*T_c2b
+    T_b02bi[0:3,0:3] = r.as_matrix();
 
-    if (i==0):
-        T_bs2c0 = np.linalg.inv(T_c02bi) 
-
-    T_bs2bi = T_bs2c0*T_c02bi;
+    # if (i==0):
+    #     T_bs2b0 = np.linalg.inv(T_b02bi) 
+    T_bs2bi = T_bs2b0*T_b02bi;
 
     data[i,1:4]= (T_bs2bi[0:3,3]).reshape(3)
     r = R.from_matrix( T_bs2bi[0:3,0:3] )
